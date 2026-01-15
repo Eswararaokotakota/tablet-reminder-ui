@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tablet Reminder Config</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --blue:#2563eb;
+  --blue-soft:#e0e7ff;
+  --bg:#f8fafc;
+  --border:#e5e7eb;
+  --text:#111827;
+}
+
+*{box-sizing:border-box;font-family:Inter,Segoe UI,Arial}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+header{
+  background:white;
+  padding:16px 24px;
+  border-bottom:1px solid var(--border);
+  font-size:18px;
+  font-weight:600;
+}
+
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:24px;
+}
+
+.btn{
+  background:var(--blue);
+  color:white;
+  border:none;
+  padding:10px 16px;
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:500;
+}
+
+.btn.secondary{background:#64748b}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:white;
+  border-radius:16px;
+  padding:18px;
+  border:1px solid var(--border);
+}
+
+.card h3{margin:0 0 6px}
+.badge{
+  display:inline-block;
+  background:var(--blue-soft);
+  color:var(--blue);
+  padding:4px 10px;
+  border-radius:999px;
+  font-size:12px;
+  margin-top:8px;
+}
+
+.empty{text-align:center;padding:60px;color:#6b7280}
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+.modal.active{display:flex}
+
+.modal-box{
+  background:white;
+  width:560px;
+  border-radius:20px;
+  padding:24px;
+}
+
+.step{display:none}
+.step.active{display:block}
+
+.field{margin-bottom:14px}
+label{font-size:13px;color:#475569}
+
+input,select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  margin-top:4px;
+}
+
+.footer{
+  display:flex;
+  justify-content:space-between;
+  margin-top:20px;
+}
+
+/* WEEKDAYS */
+.weekday-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:6px;
+}
+.day{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:white;
+  cursor:pointer;
+  font-size:13px;
+}
+.day.active{
+  background:var(--blue);
+  color:white;
+  border-color:var(--blue);
+}
+
+/* MANUAL DATES */
+.date-row{
+  display:flex;
+  gap:8px;
+  margin-top:6px;
+}
+.date-chip{
+  background:var(--blue-soft);
+  color:var(--blue);
+  padding:4px 8px;
+  border-radius:8px;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Tablet Reminder — Configuration</header>
+
+<div class="container">
+<button class="btn" onclick="openWizard()">+ Add Tablet</button>
+<br><br>
+<div id="tabletArea" class="cards">
+  <div class="empty">No tablets configured</div>
+</div>
+</div>
+
+<div id="modal" class="modal">
+<div class="modal-box">
+
+<!-- STEP 1 -->
+<div class="step active">
+<h3>Tablet Details</h3>
+<div class="field"><label>Name</label><input id="name"></div>
+<div class="field"><label>Purpose</label><input id="purpose"></div>
+<div class="field"><label>Color</label><input type="color" id="color"></div>
+</div>
+
+<!-- STEP 2 -->
+<div class="step">
+<h3>Cabinet & Dose</h3>
+<div class="field">
+<label>Compartment</label>
+<select id="cabinet">
+<option>Cabinet 1</option>
+<option>Cabinet 2</option>
+<option>Cabinet 3</option>
+</select>
+</div>
+<div class="field"><label>Tablets per Dose</label><input type="number" id="dose"></div>
+</div>
+
+<!-- STEP 3 -->
+<div class="step">
+<h3>Schedule</h3>
+<div class="field"><label>Start Date</label><input type="date" id="start"></div>
+<div class="field"><label>End Date</label><input type="date" id="end"></div>
+
+<div class="field">
+<label>Repeat Mode</label>
+<select id="repeatMode" onchange="repeatChanged()">
+<option value="daily">Daily</option>
+<option value="alternate">Alternate Days</option>
+<option value="weekdays">Specific Weekdays</option>
+<option value="manual">Manual Dates</option>
+</select>
+</div>
+
+<div id="weekdayBlock" style="display:none">
+<label>Select Days</label>
+<div class="weekday-row">
+<button class="day" onclick="toggleDay(this)">Mon</button>
+<button class="day" onclick="toggleDay(this)">Tue</button>
+<button class="day" onclick="toggleDay(this)">Wed</button>
+<button class="day" onclick="toggleDay(this)">Thu</button>
+<button class="day" onclick="toggleDay(this)">Fri</button>
+<button class="day" onclick="toggleDay(this)">Sat</button>
+<button class="day" onclick="toggleDay(this)">Sun</button>
+</div>
+</div>
+
+<div id="manualBlock" style="display:none">
+<label>Add Dates</label>
+<div class="date-row">
+<input type="date" id="manualDate">
+<button class="btn secondary" onclick="addManualDate()">Add</button>
+</div>
+<div id="manualDates"></div>
+</div>
+</div>
+
+<!-- STEP 4 -->
+<div class="step">
+<h3>Timing</h3>
+<div class="field">
+<label>Meal</label>
+<select id="meal">
+<option>Breakfast</option>
+<option>Lunch</option>
+<option>Dinner</option>
+</select>
+</div>
+<div class="field">
+<label>Relation</label>
+<select id="relation">
+<option>Before</option>
+<option>After</option>
+<option>With Meal</option>
+</select>
+</div>
+<div class="field"><label>Time</label><input type="time" id="time"></div>
+</div>
+
+<div class="footer">
+<button class="btn secondary" onclick="prev()">Back</button>
+<button class="btn" onclick="next()">Next</button>
+</div>
+
+</div>
+</div>
+
+<script>
+let step=0
+const steps=document.querySelectorAll('.step')
+const modal=document.getElementById('modal')
+const tabletArea=document.getElementById('tabletArea')
+let selectedDays=[]
+let manualDates=[]
+let data={}
+
+function openWizard(){modal.classList.add('active')}
+function closeWizard(){modal.classList.remove('active');step=0;updateSteps()}
+function updateSteps(){steps.forEach((s,i)=>s.classList.toggle('active',i===step))}
+
+function next(){
+  if(step<steps.length-1){step++;updateSteps()}
+  else save()
+}
+function prev(){if(step>0){step--;updateSteps()}}
+
+function repeatChanged(){
+  weekdayBlock.style.display = repeatMode.value==='weekdays'?'block':'none'
+  manualBlock.style.display = repeatMode.value==='manual'?'block':'none'
+  selectedDays=[]
+  manualDates=[]
+  document.querySelectorAll('.day').forEach(d=>d.classList.remove('active'))
+  manualDatesDiv.innerHTML=''
+}
+
+function toggleDay(btn){
+  btn.classList.toggle('active')
+  const d=btn.innerText
+  btn.classList.contains('active')
+    ? selectedDays.push(d)
+    : selectedDays=selectedDays.filter(x=>x!==d)
+}
+
+function addManualDate(){
+  if(manualDate.value && !manualDates.includes(manualDate.value)){
+    manualDates.push(manualDate.value)
+    manualDatesDiv.innerHTML+=`<span class="date-chip">${manualDate.value}</span> `
+  }
+}
+
+function save(){
+  data={
+    name:name.value,
+    cabinet:cabinet.value,
+    dose:dose.value,
+    repeat:repeatMode.value,
+    weekdays:selectedDays,
+    manualDates:manualDates,
+    meal:meal.value,
+    time:time.value
+  }
+
+  tabletArea.innerHTML+=`
+  <div class="card">
+    <h3>${data.name}</h3>
+    <div>${data.cabinet}</div>
+    <div>Dose: ${data.dose}</div>
+    <div>${data.repeat}</div>
+    <div>${data.meal} @ ${data.time}</div>
+    <span class="badge">Active</span>
+  </div>`
+  closeWizard()
+}
+</script>
+
+</body>
+</html>
