@@ -1,0 +1,11 @@
+{
+  "auth": {
+    "username": "a",
+    "password": "ad"
+  },
+  "device": {
+    "name": "ESP-MED-01",
+    "mac": "AA:BB:CC:DD:EE:FF"
+  },
+  "medicines": []
+}
